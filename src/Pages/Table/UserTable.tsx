@@ -1,30 +1,47 @@
+/* eslint-disable jsx-a11y/click-events-have-key-events */
+/* eslint-disable jsx-a11y/no-static-element-interactions */
 import { Link, useNavigate } from 'react-router-dom';
 import { ITableUser } from '../../Types/Table';
-
-const people: ITableUser[] = [
-  {
-    name: 'Lindsay Walton',
-    title: 'Front-end Developer',
-    email: 'lindsay.walton@example.com',
-    role: 'Member',
-  },
-  {
-    name: ' Walton',
-    title: 'Front-end Developer',
-    email: 'lindsay.walton@example.com',
-    role: 'Member',
-  },
-  {
-    name: 'Lindsay Walton',
-    title: 'Front-end Developer',
-    email: 'lindsay.walton@example.com',
-    role: 'Member',
-  },
-  // More people...
-];
+import { IUser } from '../../Types/User';
+import { useEffect, useState } from 'react';
+import { CustomInstance } from '../../Utils/CustomInstance';
 
 export default function UserTable() {
   const navigate = useNavigate();
+  const [userinformation, setuserinformation] = useState<IUser[]>([]);
+  const [loader, setloader] = useState<boolean>(true);
+  useEffect(() => {
+    const dataload = async () => {
+      try {
+        const { data } = await CustomInstance.get(`/information`);
+        console.log(data);
+        setuserinformation(data);
+        setloader(false);
+      } catch (error) {
+        console.log(error);
+        setloader(false);
+      }
+    };
+    dataload();
+  }, []);
+
+  const DeleteOperation = async (id: number | string) => {
+    try {
+      const { data } = await CustomInstance.delete(`/information/${id}`);
+      setuserinformation(prev => prev.filter(item => item?.id !== id));
+      console.log(data);
+    } catch (error) {
+      console.log('delete error');
+    }
+  };
+
+  if (loader) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-16 w-16"></div>
+      </div>
+    );
+  }
   return (
     <div className="px-4 sm:px-6 lg:px-8">
       <div className="sm:flex sm:items-center">
@@ -77,33 +94,44 @@ export default function UserTable() {
                   >
                     Role
                   </th>
-                  <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0">
-                    <span className="sr-only">Edit</span>
+                  <th
+                    scope="col"
+                    className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                  >
+                    <span>Action</span>
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {people.map(person => (
-                  <tr key={person.email}>
+                {userinformation.map(person => (
+                  <tr key={person?.email}>
                     <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
-                      {person.name}
+                      {person?.firstname}
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                      {person.title}
+                      {person?.lastname}
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                      {person.email}
+                      {person?.email}
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                      {person.role}
+                      {person?.city}
                     </td>
-                    <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                      <Link
-                        to={'/'}
-                        className="text-indigo-600 hover:text-indigo-900"
+                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 flex gap-3">
+                      <span
+                        onClick={() =>
+                          navigate(`/edit/${person?.id}`, { state: person })
+                        }
+                        className="text-indigo-700 font-bold block cursor-pointer"
                       >
-                        Edit<span className="sr-only">, {person.name}</span>
-                      </Link>
+                        Edit
+                      </span>
+                      <span
+                        onClick={() => DeleteOperation(person?.id)}
+                        className="text-red-700 font-bold block cursor-pointer"
+                      >
+                        Delete
+                      </span>
                     </td>
                   </tr>
                 ))}

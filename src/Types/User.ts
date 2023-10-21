@@ -1,7 +1,9 @@
-export type User = {
-  _id: string;
-  name: string;
+export type IUser = {
   email: string;
-  token: string;
-  isAdmin: boolean;
+  firstname: string;
+  lastname: string;
+  address: string;
+  city: string;
+  country: string;
+  id: number;
 };
